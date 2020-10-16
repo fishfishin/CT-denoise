@@ -3,6 +3,7 @@ from PIL import  PSNR
 import numpy
 from PIL import Image
 import matplotlib.pyplot as plt
+from skimage import io,img_as_float,img_as_ubyte
 
 cv2.setUseOptimized(True)
 
@@ -10,18 +11,18 @@ cv2.setUseOptimized(True)
 sigma = 25
 Threshold_Hard3D = 2.7*sigma           # Threshold for Hard Thresholding
 First_Match_threshold = 2500             # 
-Step1_max_matched_cnt = 16              # 
+Step1_max_matched_cnt = 16              # fixed
 Step1_Blk_Size = 8                     # block_Size，8*8
-Step1_Blk_Step = 3                      # Rather than sliding by one pixel to every next reference block, use a step of Nstep pixels in both horizontal and vertical directions.
+Step1_Blk_Step = 3                     # Rather than sliding by one pixel to every next reference block, use a step of Nstep pixels in both horizontal and vertical directions.
 Step1_Search_Step = 3                   # 
 Step1_Search_Window = 39                # Search for candidate matching blocks in a local neighborhood of restricted size NS*NS centered
 
 Second_Match_threshold = 400           
-Step2_max_matched_cnt = 32
+Step2_max_matched_cnt = 32             # fixed
 Step2_Blk_Size = 8
 Step2_Blk_Step = 3
 Step2_Search_Step = 3
-Step2_Search_Window = 39
+Step2_Search_Window = 39               # fixed
 
 Beta_Kaiser = 2.0
 
@@ -316,10 +317,10 @@ def BM3D_2nd_step(_basicImg, _noisyImg):
 
 def main():
     cv2.setUseOptimized(True)   
-    img_name = "C:/Users/ZhenjuYin/Downloads/a1.tif" 
-    
-    img = Image.open(img_name)
-    img = numpy.array(img)
+    img = io.imread("C:/Users/ZhenjuYin/Downloads/a1.tif", as_gray=False)
+    img = img_as_float( img )
+    print(img.shape)
+    img = img[10,:,:]
     e1 = cv2.getTickCount()  
     Basic_img = BM3D_1st_step(img)
     e2 = cv2.getTickCount()
