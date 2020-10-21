@@ -13,7 +13,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
-
+from PIL import Bm3d
 
 env = gym.make('CartPole-v0').unwrapped
 
@@ -30,7 +30,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 action = namedtuple('action',
-                        ('+0.5', '+0.1', '0', '-0.1', '-0.5'))
+                        ('plus_half', 'plus_tenth', 'null', 'minus_tenth', 'minus_half'))
 para = namedtuple('parameter',
                         ('sigma', 'beta_kasier'))
 
@@ -111,6 +111,10 @@ class doubleDQN(nn.Module):
         out2 = self.head2(out2)
 
         return  out1, out2
+
+
+
+
 
 
 
