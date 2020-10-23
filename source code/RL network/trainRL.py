@@ -67,11 +67,11 @@ def replay_train(mainDQN: RL.doubleDQN, targetDQN: RL.doubleDQN, states, next_st
 
 
 
-def divid_patch(fimg)：
+def divid_patch(fimg) -> np.float64:
 
-    fimgpad = zeros((RESOLUTION + PATCH_SIZE[0] -1, RESOLUTION + PATCH_SIZE[0] -1))
+    fimgpad = np.zeros((RESOLUTION + PATCH_SIZE[0] -1, RESOLUTION + PATCH_SIZE[0] -1))
     fimgpad[int((PATCH_SIZE[0]+1)/2)-1:RESOLUTION+int((PATCH_SIZE[0]+1)/2)-1,int((PATCH_SIZE[0]+1)/2)-1:RESOLUTION+int((PATCH_SIZE[0]+1)/2)-1]=fimg
-    state = zeros((Patch_num,PATCH_SIZE[0], PATCH_SIZE[0]))
+    state = np.zeros((Patch_num,PATCH_SIZE[0], PATCH_SIZE[0]))
     count = 0
     for xcord in range(RESOLUTION):
         for ycord in range(RESOLUTION):
@@ -82,7 +82,7 @@ def divid_patch(fimg)：
 
 
    #state : patches in one image
-def Denoise(state, parameter, action, parameter_value, GroundTruth, original_image):
+def Denoise(state, parameter, action, parameter_value, GroundTruth, original_image) -> np.float64:
     
 
     # tuning parameter
@@ -173,6 +173,7 @@ def Denoise(state, parameter, action, parameter_value, GroundTruth, original_ima
 def main():
 
     train_data = skimage.external.tifffile.imread("C:/Users/ZhenjuYin/Downloads/a1.tif")
+    TrueImgTrain = skimage.external.tifffile.imread("C:/Users/ZhenjuYin/Downloads/t.tif")
     datasize = train_data.shape
     # (None, channel, H, w, depth) for Volume
     mainDQN = RL.doubleDQN(PATCH_SIZE[0], PATCH_SIZE[1], len(Para),len(Actions))
@@ -200,8 +201,9 @@ def main():
                 ## initialize the 1st and 2nd paths 
                 parameter = np.ones((Patch_num))
                 action = 2 * np.ones((Patch_num))
-                next_state, reward, parameter_value, img, error = Denoise( state,  parameter, action, parameter_value , GroundTruth, train_data[ IMG,:,:] )
-                State[ IMG, :, :, :] = next_state
+                #next_state, reward, parameter_value, img, error = Denoise( state,  parameter, action, parameter_value , GroundTruth, train_data[ IMG,:,:] )
+                State[ IMG, :, :, :] = state
+                print(IMG)
 
             State_initial = State
             count_memory = 0
@@ -232,21 +234,23 @@ def main():
                                 length_patch += 1
                         
                         # yy  : patch samples
-                        yy = zeros((length_patch, 1, PATCH_SIZE,PATCH_SIZE))
+                        yy = torch.zeros(length_patch, 1, PATCH_SIZE[0],PATCH_SIZE[0])
                         for idx in range(Patch_num):
                             if flag[idx]<e:
                                 action[idx] = np.random.randint(len(Actions), size=1)
                                 parameter[idx] = np.random.randint(len(Para), size=1)
                             if flag[idx]>=e:
-                                yy[count_patch,1,:, :] = state[idx,:,:]
+                                yy[count_patch,0,:, :] = torch.from_numpy(state[idx,:,:])
                                 count_patch += 1
                         
                         y1, y2 = mainDQN(yy)
                         parameter_yy = torch.argmax(y1, axis=1)
                         action_yy = torch.argmax(y2, axis=1)
+                        #print(parameter_yy)
+                        #print(action_yy)
 
-                        avg_action = torch.mean(action_yy)
-                        avg_para = torch.mean(parameter_yy)
+                        avg_action = action_yy.type(torch.float32).mean()
+                        avg_para = parameter_yy.type(torch.float32).mean()
                         print('average action taken is: {} average parameter taken is: {}'.format(avg_action,avg_para))
                         
                         #### action and paramter chosen
