@@ -28,17 +28,17 @@ plt.ion()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class doubleDQN(nn.Module):
+class doubleDQN3d(nn.Module):
 
     def __init__(self, h, w, output1,output2):
-        super(doubleDQN, self).__init__()
+        super(doubleDQN3d, self).__init__()
 
-        # image patch size is   h x w
+        # image patch size is   h x w x d
         #first two  shared conv layers
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=(2),padding=1)
-        self.bn1 = nn.BatchNorm2d(32)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=(2),padding=1)
-        self.bn2 = nn.BatchNorm2d(64)
+        self.conv1 = nn.Conv3d(1, 32, kernel_size=3, stride=(2),padding=(1,1,1))  # 5x5x3
+        self.bn1 = nn.BatchNorm3d(32)
+        self.conv2 = nn.Conv3d(32, 64, kernel_size=3, stride=(2),padding=(1,1,0))  # 3x3x1
+        self.bn2 = nn.BatchNorm3d(64)
 
         # patch size after conv layer
         def conv2d_size_out(size, kernel_size = 3, stride = 2):
@@ -48,6 +48,7 @@ class doubleDQN(nn.Module):
 
         linear_input_size = convw * convh * 64
 
+        
         #  Parameter selection
         #  conv 64 Filter, kernel 3x3 
         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1,padding=1)
@@ -79,7 +80,10 @@ class doubleDQN(nn.Module):
         # 2 shared layers
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
-
+        
+        # reshape
+        x = x.view(x.size(0),x.size(1),x.size(2),x.size(3))
+        
         #  Parameter selection
         out1 = F.relu(self.bn3(self.conv3(x)))
         out1 = out1.view(out1.size(0), -1)
@@ -100,24 +104,20 @@ class doubleDQN(nn.Module):
 
         out1,out2 = self.forward(x)
         self.opt.zero_grad()
-        
+
         loss1 = nn.MSELoss(reduction='sum')
         loss2 = nn.MSELoss(reduction='sum')
-        upd_ 1 = loss1(out1,target1 )
-        upd_ 2 = loss2(out2,target2 )
+        upd_1 = loss1(out1,target1 )
+        upd_2 = loss2(out2,target2 )
         upd_ = upd_1 + upd_2
         upd_.backward()
         
         self.opt.step()
 
-        return upd_
-
-    
-
 """
 if __name__ == '__main__':
 
-    model = doubleDQN(9,9,2,5)
-    batch = torch.randn(4, 1, 9,9)
+    model = doubleDQN3d(9,9,2,5)
+    batch = torch.randn(4, 1, 9,9,5)
     output1, output2 = model(batch)
 """
