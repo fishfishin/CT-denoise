@@ -257,7 +257,8 @@ def main():
                                 parameter[idx] = parameter_yy[count_patch]
                                 count_patch += 1
 
-                        next_state, reward, parameter_value, img, error = Denoise( state,  parameter, action,parameter_value,  GroundTruth, train_data[ IMG_IDX,:,:] )
+                        original = np.reshape(state[:, int(PATCH_SIZE[0]//2), int(PATCH_SIZE[0]//2)], (RESOLUTION, RESOLUTION), order='F')
+                        next_state, reward, parameter_value, img, error = Denoise( state,  parameter, action,parameter_value,  GroundTruth, original )
                      
                         fig, axs = plt.subplots(1, 3)
                         fig.suptitle('current results Bm3d')
