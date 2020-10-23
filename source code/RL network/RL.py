@@ -103,8 +103,8 @@ class doubleDQN(nn.Module):
         
         loss1 = nn.MSELoss(reduction='sum')
         loss2 = nn.MSELoss(reduction='sum')
-        upd_ 1 = loss1(out1,target1 )
-        upd_ 2 = loss2(out2,target2 )
+        upd_1 = loss1(out1,target1 )
+        upd_2 = loss2(out2,target2 )
         upd_ = upd_1 + upd_2
         upd_.backward()
         
