@@ -201,8 +201,8 @@ def main():
                 ## initialize the 1st and 2nd paths 
                 parameter = np.ones((Patch_num))
                 action = 2 * np.ones((Patch_num))
-                #next_state, reward, parameter_value, img, error = Denoise( state,  parameter, action, parameter_value , GroundTruth, train_data[ IMG,:,:] )
-                State[ IMG, :, :, :] = state
+                next_state, reward, parameter_value, img, error = Denoise( state,  parameter, action, parameter_value , GroundTruth, train_data[ IMG,:,:] )
+                State[ IMG, :, :, :] = next_state
                 print(IMG)
 
             State_initial = State
