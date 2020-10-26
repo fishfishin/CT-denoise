@@ -70,7 +70,7 @@ class doubleDQN(nn.Module):
         self.bn7 = nn.BatchNorm1d(256)
         self.head2 = nn.Linear(256, output2)
 
-        self.opt = optim.SGD(self.parameters(), lr=0.001, momentum=0.9)
+        self.opt = optim.SGD(self.parameters(), lr=0.0001, momentum=0.9)
 
     
     def forward(self, x):
