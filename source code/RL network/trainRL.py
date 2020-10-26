@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-
+import visdom
 import torchvision.transforms as T
 from PIL import Bm3d,NLM
 import skimage
@@ -25,7 +25,7 @@ if torch.cuda.is_available():
 else:  
   dev = "cpu"  
 print(dev)
-
+vis = visdom.Visdom()
 
 ####  1st path
 Para = ['sigma', 'size', 'dist']
@@ -280,7 +280,7 @@ def main():
                         psnr = PSNR.PSNR(train_data[IMG_IDX,:,:], img )
                         print(" current PSNR : {}".format(psnr))
                         name = str(step_count)
-                        plt.imsave("C:/Users/ZhenjuYin/Downloads/rl/"+name+".png", img,cmap='gray')
+                        vis.image( img,opts='store_history')
                         
                         ###################  ? random replacement
                         sel_prob = 0.01
