@@ -116,13 +116,13 @@ def Denoise(state, parameter, action, parameter_value, GroundTruth, original_ima
                 parameter_value[idx,1] = parameter_value[idx,1] *0.5
         if parameter[idx]==2:
             if action[idx]==0:
-                parameter_value[idx,2] = parameter_value[idx,1] *1.5
+                parameter_value[idx,2] = parameter_value[idx,2] *1.5
             if action[idx]==1:
-                parameter_value[idx,2] = parameter_value[idx,1] *1.1
+                parameter_value[idx,2] = parameter_value[idx,2] *1.1
             if action[idx]==3:
-                parameter_value[idx,2] = parameter_value[idx,1]*0.9
+                parameter_value[idx,2] = parameter_value[idx,2]*0.9
             if action[idx]==4:
-                parameter_value[idx,2] = parameter_value[idx,1] *0.5
+                parameter_value[idx,2] = parameter_value[idx,2] *0.5
     
     current_patch = np.zeros((Patch_num, PATCH_SIZE[0], PATCH_SIZE[0]))
     """
@@ -164,6 +164,7 @@ def Denoise(state, parameter, action, parameter_value, GroundTruth, original_ima
     count=0
     for i in range(RESOLUTION):
         for j in range(RESOLUTION):
+            
             temp = np.sum(dist1imgLarge[j:j + PATCH_reward, i:i + PATCH_reward]) - np.sum(dist2imgLarge[j:j + PATCH_reward, i:i + PATCH_reward])
 
             ### when reach the ground truth 
@@ -187,6 +188,7 @@ def Denoise(state, parameter, action, parameter_value, GroundTruth, original_ima
                 if temp / np.sum(dist1imgLarge[j:j + PATCH_reward, i:i + PATCH_reward]) < 0:
                     reward[count] = -1
                 count += 1
+            
             rewardimg[i,j]= 1/(np.sum(dist2imgLarge[i:i+PATCH_reward,j:j+PATCH_reward])+0.001) - 1/(np.sum(dist1imgLarge[i:i+PATCH_reward,j:j+PATCH_reward])+0.001)
     reward = np.reshape(rewardimg,(Patch_num),order='F')
     error = np.sum(np.absolute(dist2))
