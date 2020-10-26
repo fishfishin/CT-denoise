@@ -42,7 +42,7 @@ PATCH_SIZE = [9,9]
 Patch_num = RESOLUTION **2
 PATCH_reward = 5
 TARGET_UPDATE_STEP = 300
-MAXSTEPS_BM3D = 20
+MAXSTEPS_FILTER= 20
 REPLAY_MEMORY = 5000000  ######### buffer？
 BATCH_SIZE = 128
 
@@ -125,7 +125,7 @@ def Denoise(state, parameter, action, parameter_value, GroundTruth, original_ima
                 parameter_value[idx,2] = parameter_value[idx,2] *0.5
     
     current_patch = np.zeros((Patch_num, PATCH_SIZE[0], PATCH_SIZE[0]))
-    """
+    """ Bm3d
     # noise removal for each patch
     for  idx in range(Patch_num):
         basic_patch = Bm3d.BM3D_1st_step(original_image, parameter_value[idx,0], parameter_value[idx,1]) 
@@ -142,10 +142,7 @@ def Denoise(state, parameter, action, parameter_value, GroundTruth, original_ima
     next_img = np.reshape(current_patch[:, int(PATCH_SIZE[0]//2), int(PATCH_SIZE[0]//2)], (RESOLUTION, RESOLUTION), order='F')
     next_state = current_patch
     current_image = np.reshape(state[:, int(PATCH_SIZE[0]//2), int(PATCH_SIZE[0]//2)], (RESOLUTION, RESOLUTION), order='F')
-     #next_state = divid_patch(fimg)
-
     #############   calculate reward and error
-    #dist1 = np.reshape(original_image-GroundTruth,(Patch_num),order='F')
 
     dist1img = current_image - GroundTruth
     dist2img = next_img - GroundTruth  #######################################
@@ -159,36 +156,11 @@ def Denoise(state, parameter, action, parameter_value, GroundTruth, original_ima
     dist2imgLarge[margin:RESOLUTION + margin, margin:RESOLUTION + margin] = np.absolute(dist2img)
 
     rewardimg = np.zeros((RESOLUTION,RESOLUTION))
-    reward = np.zeros((Patch_num))
 
     count=0
     for i in range(RESOLUTION):
         for j in range(RESOLUTION):
-            
-            temp = np.sum(dist1imgLarge[j:j + PATCH_reward, i:i + PATCH_reward]) - np.sum(dist2imgLarge[j:j + PATCH_reward, i:i + PATCH_reward])
 
-            ### when reach the ground truth 
-            if np.sum(dist1imgLarge[j:j+PATCH_reward,i:i+PATCH_reward])==0:
-                if temp==0:
-                    reward[count]=1
-                else:
-                    reward[count]=-1
-                count += 1
-            ### not yet get the best result
-            else:
-                factor = 0.005
-                if temp/np.sum(dist1imgLarge[j:j+PATCH_reward,i:i+PATCH_reward])>=factor:
-                    reward[count]=1
-                if temp/np.sum(dist1imgLarge[j:j+PATCH_reward,i:i+PATCH_reward])<factor and temp/np.sum(dist1imgLarge[j:j+PATCH_reward,i:i+PATCH_reward])>=factor*0.1:
-                    reward[count] = 0.5
-                if temp/np.sum(dist1imgLarge[j:j+PATCH_reward,i:i+PATCH_reward])<factor*0.1 and temp>0:
-                    reward[count] = 0.1
-                if temp==0:
-                    reward[count] = 0
-                if temp / np.sum(dist1imgLarge[j:j + PATCH_reward, i:i + PATCH_reward]) < 0:
-                    reward[count] = -1
-                count += 1
-            
             rewardimg[i,j]= 1/(np.sum(dist2imgLarge[i:i+PATCH_reward,j:j+PATCH_reward])+0.001) - 1/(np.sum(dist1imgLarge[i:i+PATCH_reward,j:j+PATCH_reward])+0.001)
     reward = np.reshape(rewardimg,(Patch_num),order='F')
     error = np.sum(np.absolute(dist2))
@@ -248,7 +220,7 @@ def main():
                 step_count = 0
                 State = State_initial
 
-                for ITER_NUM in range(MAXSTEPS_BM3D):
+                for ITER_NUM in range(MAXSTEPS_FILTER):
 
                     for IMG_IDX in range(datasize[0]):
                        
@@ -330,9 +302,9 @@ def main():
                                     para_sel[count_memory] = parameter[idx]
                                     reward_sel[count_memory] = reward[idx]
                                     #value_sel[count_memory] = parameter_value[idx,:]
-                                    if ITER_NUM >= MAXSTEPS_BM3D-1:
+                                    if ITER_NUM >= MAXSTEPS_FILTER-1:
                                         done_sel[count_memory] = 0
-                                    if ITER_NUM < MAXSTEPS_BM3D - 1:
+                                    if ITER_NUM < MAXSTEPS_FILTER - 1:
                                         done_sel[count_memory] = 1
                                     count_memory += 1
                         else:
@@ -345,9 +317,9 @@ def main():
                                     para_sel[count_memory] = parameter[idx]
                                     reward_sel[count_memory] = reward[idx]
                                     #value_sel[count_memory] = parameter_value[idx,:]
-                                    if ITER_NUM >= MAXSTEPS_BM3D-1:
+                                    if ITER_NUM >= MAXSTEPS_FILTER-1:
                                         done_sel[count_memory] = 0
-                                    if ITER_NUM < MAXSTEPS_BM3D - 1:
+                                    if ITER_NUM < MAXSTEPS_FILTER - 1:
                                         done_sel[count_memory] = 1
                                     if count_memory == REPLAY_MEMORY - 1:
                                         count_memory = 0
